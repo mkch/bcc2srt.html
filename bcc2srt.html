@@ -39,7 +39,7 @@
         let n = Math.trunc(seconds);
         const h = Math.trunc(n / 3600).toString().padStart(2, '0');
         n = Math.trunc(n % 3600);
-        const m = (n % 60).toString().padStart(2, '0');
+        const m = Math.trunc(n / 60).toString().padStart(2, '0');
         const s = (n % 60).toString().padStart(2, '0');
         let ms = seconds.toFixed(3);
         ms = ms.slice(ms.indexOf('.') + 1);
