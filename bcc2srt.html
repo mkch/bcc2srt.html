@@ -1,0 +1,73 @@
+<html>
+
+<input style="display: none;" type="file" accept=".bcc" id="file_upload" onchange="upload(event)">
+<div id="div" style="text-align: center; padding-top: 2em; font-size: large;">
+    <div>
+        <button style="padding: 1em; font-size: large;" onclick="selectFile()">Select a bcc file</button>
+    </div>
+    <a id="download" style="padding: 1em; display: none;"></a>
+</div>
+
+<script>
+    function showDownloadLink(blob, filename) {
+        const download = document.querySelector("#download");
+        if (download.href) {
+            URL.revokeObjectURL(download.href);
+        }
+        download.download = filename;
+        download.innerText = filename;
+        download.style.display = "block";
+        download.href = window.URL.createObjectURL(blob);
+    }
+
+    function upload(event) {
+        const fileUpload = event.target;
+        if (fileUpload.files.length > 0) {
+            bcc2Srt(fileUpload.files[0]);
+        }
+    }
+
+    function selectFile() {
+        document.querySelector("#download").style.display = "none";
+        const fileUpload = document.querySelector("#file_upload");
+        fileUpload.value = "";
+        fileUpload.dispatchEvent(new MouseEvent("click"));
+    }
+
+    // Converts seconds value to "hh:mm:ss,mil".
+    function srtTime(seconds) {
+        let n = Math.trunc(seconds);
+        const h = Math.trunc(n / 3600).toString().padStart(2, '0');
+        n = Math.trunc(n % 3600);
+        const m = (n % 60).toString().padStart(2, '0');
+        const s = (n % 60).toString().padStart(2, '0');
+        let ms = seconds.toFixed(3);
+        ms = ms.slice(ms.indexOf('.') + 1);
+        return `${h}:${m}:${s},${ms}`;
+    }
+
+    // Change the extention of filename.
+    function changeExt(filename, newExt) {
+        const dot = filename.lastIndexOf(".");
+        if (dot == -1) {
+            return `filename.${newExt}`;
+        }
+        return `${filename.slice(0, dot)}.${newExt}`
+    }
+
+    async function bcc2Srt(bccFile) {
+        try {
+            const bcc = JSON.parse(await bccFile.text());
+            let srt = "";
+            bcc.body.forEach((e, i) => {
+                srt += `${i + 1}\n${srtTime(e.from)} --> ${srtTime(e.to)}\n${e.content}\n\n`;
+            });
+            showDownloadLink(new Blob([srt], { type: "application/octet-stream" }), changeExt(bccFile.name, "srt"));
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+</script>
+
+</html>
